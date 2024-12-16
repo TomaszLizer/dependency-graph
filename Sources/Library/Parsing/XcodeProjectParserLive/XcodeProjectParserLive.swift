@@ -93,9 +93,10 @@ private extension PBXFileReference {
     }
 
     func potentialPackageSwiftFileURL(forSourceRoot sourceRoot: URL) -> URL? {
-        guard let path = path else {
+        guard let fullPath = try? fullPath(sourceRoot: sourceRoot.path) else {
             return nil
         }
-        return ((sourceRoot as NSURL).appendingPathComponent(path) as? NSURL)?.appendingPathComponent("Package.swift")
+        let packageUrl = URL(fileURLWithPath: fullPath)
+        return packageUrl.appendingPathComponent("Package.swift")
     }
 }
