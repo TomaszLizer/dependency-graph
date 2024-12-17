@@ -226,6 +226,7 @@ let package = Package(
         ]),
         .testTarget(name: "XcodeProjectParserLiveTests", dependencies: [
             "FileSystem",
+            "FileSystemLive",
             "XcodeProject",
             "XcodeProjectParserLive"
         ], resources: [.copy("Example")])

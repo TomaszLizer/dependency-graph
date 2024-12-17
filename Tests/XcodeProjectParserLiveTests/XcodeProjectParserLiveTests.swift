@@ -1,5 +1,6 @@
 @testable import XcodeProject
 @testable import XcodeProjectParserLive
+import FileSystemLive
 import XCTest
 
 final class XcodeProjectParserLiveTests: XCTestCase {
@@ -33,9 +34,11 @@ final class XcodeProjectParserLiveTests: XCTestCase {
     }
 
     func testSwiftPackageCount() throws {
-        let parser = XcodeProjectParserLive(fileSystem: FileSystemMock())
+        // The example project contains 5 Swift packages:
+        // 2 remote and 3 local (2 of which are nested in group)
+        let parser = XcodeProjectParserLive(fileSystem: FileSystemLive())
         let xcodeProject = try parser.parseProject(at: URL.Mock.exampleXcodeProject)
-        XCTAssertEqual(xcodeProject.swiftPackages.count, 4)
+        XCTAssertEqual(xcodeProject.swiftPackages.count, 5)
     }
 
     func testParsesLocalSwiftPackage() throws {
@@ -49,6 +52,20 @@ final class XcodeProjectParserLiveTests: XCTestCase {
             XCTAssertTrue(fileURLHasPackageSwiftSuffix, "Expected file URL to end with the package name and Package.swift")
         } else {
             XCTFail("Expected ExamplePackageA to be a local package")
+        }
+    }
+    
+    func testParsesLocalSwiftPackageInNestedGroupDirectory() throws {
+        let parser = XcodeProjectParserLive(fileSystem: FileSystemLive())
+        let xcodeProject = try parser.parseProject(at: URL.Mock.exampleXcodeProject)
+        let swiftPackage = xcodeProject.swiftPackages.first { $0.name == "ExamplePackageB" }
+        XCTAssertNotNil(swiftPackage)
+        if case let .local(parameters) = swiftPackage {
+            XCTAssertEqual(parameters.name, "ExamplePackageB")
+            let fileURLHasPackageSwiftSuffix = parameters.fileURL.absoluteString.hasSuffix("NestedPackages/ExamplePackageB/Package.swift")
+            XCTAssertTrue(fileURLHasPackageSwiftSuffix, "Expected file URL to end with the package name and Package.swift")
+        } else {
+            XCTFail("Expected ExamplePackageB to be a local package")
         }
     }
 
